@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 25% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 25% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 270 91% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 20% 20%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 270 91% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 20% 18%;
+    --input: 222 20% 18%;
+    --ring: 270 91% 65%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --gradient-purple: linear-gradient(135deg, hsl(270 91% 65%), hsl(280 100% 70%));
+    --gradient-glow: radial-gradient(ellipse at top, hsl(270 91% 65% / 0.15), transparent 50%);
+    
+    --orange: 30 100% 55%;
+    --cyan: 188 100% 45%;
+    --green: 142 76% 50%;
+    
+    --editor-bg: 220 20% 6%;
+    --sidebar-bg: 222 25% 8%;
+
+    --shadow-glow: 0 0 60px hsl(270 91% 65% / 0.3);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.4);
+  }
+
+  .dark {
+    --background: 220 20% 4%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-purple);
+  }
+
+  .bg-glow {
+    background-image: var(--gradient-glow);
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Typing cursor animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-delay-1 {
+  animation: fadeIn 0.5s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-2 {
+  animation: fadeIn 0.5s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-3 {
+  animation: fadeIn 0.5s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+/* Remote Cursors */
+.remote-cursor {
+  background-color: rgba(255, 0, 0, 0.2);
+  width: 2px !important;
+}
+
+.remote-cursor-caret {
+  background-color: #ff0000;
+  width: 2px !important;
+  height: 100% !important;
+  position: absolute;
+  z-index: 10;
+}
+
+/* Add a pseudo-element for the name tag if possible, but Monaco handles decorations differently. 
+   We rely on hoverMessage for the name. 
+*/
