@@ -7,31 +7,39 @@ import { connectDB } from './config/db';
 import workspaceRoutes from './routes/workspaceRoutes';
 import fileRoutes from './routes/fileRoutes';
 import executionRoutes from './routes/executionRoutes';
+import './config/passport'; // Import passport config
+import authRoutes from './routes/authRoutes';
+import passport from 'passport';
+import { setupSocketHandlers } from './services/socketService';
 
 dotenv.config();
 
-
 const app = express();
 const httpServer = createServer(app);
+
+const allowedOrigins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "https://major-project-exhibition.vercel.app",
+    process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
+console.log('Allowed Origins:', allowedOrigins);
+
 const io = new Server(httpServer, {
     cors: {
-        origin: ["http://localhost:8080", "http://127.0.0.1:8080"],
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true
     }
 });
+
 app.use(cors({
-    origin: ["http://localhost:8080", "http://127.0.0.1:8080"],
+    origin: allowedOrigins,
     credentials: true
 }));
+
 app.use(express.json());
-
-import './config/passport'; // Import passport config
-import authRoutes from './routes/authRoutes';
-import passport from 'passport';
-
-// ...
-
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
@@ -44,10 +52,6 @@ const PORT = process.env.PORT || 3000;
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: 'Backend is running' });
 });
-
-import { setupSocketHandlers } from './services/socketService';
-
-// ...
 
 const startServer = async () => {
     await connectDB();

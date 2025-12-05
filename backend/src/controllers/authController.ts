@@ -92,10 +92,13 @@ export const googleCallback = async (req: Request, res: Response) => {
         const user = req.user as IUser;
         const token = generateToken(user);
 
+        console.log('Google Auth Success:', { userId: user._id, email: user.email });
+
         // Redirect to frontend with token
         // Assuming frontend is on localhost:8080 or similar. 
         // We should make this configurable.
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+        console.log('Redirecting to:', `${frontendUrl}/auth/success`);
         res.redirect(`${frontendUrl}/auth/success?token=${token}`);
     } catch (error) {
         console.error('Google callback error:', error);
