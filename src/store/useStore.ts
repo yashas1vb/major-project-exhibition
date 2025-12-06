@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Workspace, File } from '@/types';
 import api from '@/lib/api';
+import { handleDebouncedUpdate } from './debounceHandler';
 import { mockApi } from '@/lib/mockApi'; // Keep for workspace/file for now if not fully migrated
 
 interface AppState {
@@ -193,8 +194,10 @@ export const useStore = create<AppState>()(
         return file;
       },
 
+
+      // Debounce map for file updates
       updateFileContent: async (fileId, content) => {
-        await api.put(`/files/${fileId}`, { content });
+        // Optimistic update
         set((state) => ({
           files: state.files.map((f) =>
             f.id === fileId ? { ...f, content } : f
@@ -204,6 +207,18 @@ export const useStore = create<AppState>()(
               ? { ...state.currentFile, content }
               : state.currentFile,
         }));
+
+        // Debounce API call
+        const DEBOUNCE_DELAY = 1000;
+
+        // Access a module-level or static storage for timers if possible. 
+        // Since we are inside the create function, we can't easily access "this".
+        // However, we can use a closure if we wrap the creator. 
+        // OR, we can just attach it to the window or a global object for now, or use a simple hack.
+        // Better: Define `debouncedUpdates` outside the store definition.
+
+        // Calling the external debounce handler
+        handleDebouncedUpdate(fileId, content);
       },
 
       setCurrentFile: (file) => set({ currentFile: file }),

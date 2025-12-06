@@ -9,21 +9,59 @@ import { FileCode, Loader2 } from 'lucide-react';
 const WorkspaceDetail = () => {
   const navigate = useNavigate();
   const { workspaceId } = useParams();
-  const { currentUser, currentWorkspace, fetchWorkspaceById, fetchWorkspaceFiles, isLoadingFiles } =
+  const { currentUser, currentWorkspace, fetchWorkspaceById, fetchWorkspaceFiles, isLoadingFiles, joinWorkspace } =
     useStore();
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
-      navigate('/');
-      return;
+      // Store current location for redirect after login
+      // But usually this is handled by ProtectedRoute. 
+      // If we are here, we might need to redirect manually if ProtectedRoute isn't wrapping this perfectly 
+      // or if we want to be explicit.
+      // For now, assuming standard flow.
+      return; // Navigate is handled in checks
     }
 
     if (workspaceId) {
+      // Fetch workspace first
       fetchWorkspaceById(workspaceId);
       fetchWorkspaceFiles(workspaceId);
     }
-  }, [currentUser, navigate, workspaceId, fetchWorkspaceById, fetchWorkspaceFiles]);
+  }, [currentUser, workspaceId, fetchWorkspaceById, fetchWorkspaceFiles]);
+
+  // Handle auto-join
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const shouldJoin = searchParams.get('join') === 'true';
+
+    if (currentUser && currentWorkspace && workspaceId && shouldJoin) {
+      const isMember = currentWorkspace.members?.some((m: any) =>
+        (typeof m === 'string' ? m : m._id || m.id) === currentUser.id
+      ) || currentWorkspace.ownerId === currentUser.id ||
+        (typeof currentWorkspace.ownerId === 'object' && (currentWorkspace.ownerId as any)._id === currentUser.id);
+
+      if (!isMember) {
+        // Auto join
+        joinWorkspace(workspaceId)
+          .then(() => {
+            // Remove query param to clean up url
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+          })
+          .catch((err) => {
+            console.error("Failed to auto-join", err);
+          });
+      }
+    }
+  }, [currentUser, currentWorkspace, workspaceId, joinWorkspace]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      return;
+    }
+  }, [currentUser, navigate]);
 
   if (!currentUser) {
     return null;

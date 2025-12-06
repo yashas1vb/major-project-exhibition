@@ -37,11 +37,12 @@ export const createFile = async (req: Request, res: Response) => {
             content: content || '',
         });
 
+
         // Log activity
         await Workspace.findByIdAndUpdate(workspaceId, {
             $push: {
                 activityLog: {
-                    user: username,
+                    user: (req as any).user?.username || 'System', // Fallback to System if unknown
                     action: 'Created File',
                     file: name,
                     timestamp: new Date()
@@ -58,7 +59,9 @@ export const createFile = async (req: Request, res: Response) => {
 export const updateFile = async (req: Request, res: Response) => {
     try {
         const { content } = req.body;
-        const username = (req as any).user?.username || 'Unknown';
+        // Optimization: Do NOT log every file update to activity log. 
+        // This causes excessive database writes and "Unknown updated file" spam.
+        // If needed, we can log only major versions or have a separate commit system.
 
         const file = await File.findByIdAndUpdate(
             req.params.id,
@@ -70,20 +73,11 @@ export const updateFile = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Log activity
-        await Workspace.findByIdAndUpdate(file.workspaceId, {
-            $push: {
-                activityLog: {
-                    user: username,
-                    action: 'Updated File',
-                    file: file.name,
-                    timestamp: new Date()
-                }
-            }
-        });
+        // Removed excessive activity logging
 
         res.json(file);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server Error', error });
     }
 };

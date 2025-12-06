@@ -63,19 +63,34 @@ export const createWorkspace = async (req: Request, res: Response) => {
     }
 };
 
+
 export const inviteUser = async (req: Request, res: Response) => {
     try {
-        const { email } = req.body;
         const workspaceId = req.params.id;
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const { email } = req.body;
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
         const workspace = await Workspace.findById(workspaceId);
         if (!workspace) {
             return res.status(404).json({ message: 'Workspace not found' });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            // User not found - Send invite email to join/register
+            const inviteLink = `${frontendUrl}/workspaces/${workspaceId}?join=true`;
+            // If they are not registered, they will hit a auth guard on frontend, 
+            // which should redirect them to login/register, capturing the 'join' intent.
+            // Better: Point them to a register page with redirect.
+            const registerLink = `${frontendUrl}/signup?redirect=/workspaces/${workspaceId}?join=true`;
+
+            const { sendInvitationEmail } = await import('../services/emailService');
+            // We use the same email service.
+            await sendInvitationEmail(email, workspace.name, registerLink);
+
+            // Return 200 OK so frontend shows success
+            return res.status(200).json({ message: 'Invitation sent to email address.' });
         }
 
         // Check if already member
@@ -93,8 +108,14 @@ export const inviteUser = async (req: Request, res: Response) => {
 
         await workspace.save();
 
+        // Send Email to existing user
+        const link = `${frontendUrl}/workspaces/${workspaceId}`;
+        const { sendInvitationEmail } = await import('../services/emailService');
+        await sendInvitationEmail(user.email, workspace.name, link);
+
         res.json(workspace);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server Error', error });
     }
 };

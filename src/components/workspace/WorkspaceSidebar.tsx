@@ -10,8 +10,10 @@ import {
   Loader2,
   UserPlus,
   History,
-  Users
+  Users,
+  Share2
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { InviteUserDialog } from './InviteUserDialog';
 import { ActivityLogDialog } from './ActivityLogDialog';
@@ -100,6 +102,19 @@ export function WorkspaceSidebar({ onAddFile }: WorkspaceSidebarProps) {
                 <UserPlus className="h-3 w-3 mr-1.5" />
                 Invite
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs flex-1"
+                onClick={() => {
+                  const link = `${window.location.origin}/workspaces/${currentWorkspace.id}`;
+                  navigator.clipboard.writeText(link);
+                  toast.success('Workspace link copied to clipboard');
+                }}
+              >
+                <Share2 className="h-3 w-3 mr-1.5" />
+                Share
+              </Button>
               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowActivityDialog(true)} title="Activity Log">
                 <History className="h-4 w-4" />
               </Button>
@@ -110,7 +125,7 @@ export function WorkspaceSidebar({ onAddFile }: WorkspaceSidebarProps) {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(currentWorkspace.id);
-                  // You might want to add a toast here if you can import it, or just rely on user knowing
+                  toast.success('Workspace ID copied to clipboard');
                 }}
                 className="hover:text-foreground transition-colors"
                 title="Copy ID"

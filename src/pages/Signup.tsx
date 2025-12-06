@@ -20,7 +20,16 @@ const Signup = () => {
         try {
             await register({ username, email, password });
             toast.success('Account created successfully');
-            navigate('/home');
+
+            // Check for redirect param
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectUrl = searchParams.get('redirect');
+            // Security: Ensure redirect is relative/internal to prevent open redirect vulnerability
+            if (redirectUrl && redirectUrl.startsWith('/')) {
+                navigate(redirectUrl);
+            } else {
+                navigate('/home');
+            }
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Signup failed');
         }
@@ -97,7 +106,7 @@ const Signup = () => {
                 <CardFooter className="flex justify-center">
                     <p className="text-sm text-muted-foreground">
                         Already have an account?{' '}
-                        <Link to="/login" className="text-primary hover:underline">
+                        <Link to={`/login${window.location.search}`} className="text-primary hover:underline">
                             Sign in
                         </Link>
                     </p>
