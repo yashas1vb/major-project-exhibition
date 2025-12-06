@@ -17,8 +17,10 @@ const testEmail = async () => {
         },
         tls: {
             rejectUnauthorized: false
-        }
-    });
+        },
+        family: 4,
+        connectionTimeout: 10000,
+    } as any);
 
     try {
         await transporter.verify();

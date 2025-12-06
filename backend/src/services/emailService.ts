@@ -12,7 +12,11 @@ const transporter = nodemailer.createTransport({
         // do not fail on invalid certs
         rejectUnauthorized: false
     },
-});
+    // Force IPv4 to avoid IPv6 routing issues on Render
+    family: 4,
+    // Increase connection timeout to 10 seconds
+    connectionTimeout: 10000,
+} as any);
 
 export const sendInvitationEmail = async (to: string, workspaceName: string, inviteLink: string) => {
     try {
