@@ -1,39 +1,31 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const testEmail = async () => {
-    console.log('Testing Email Connection (Port 587)...');
-    console.log('User:', process.env.EMAIL_USER);
-    // Don't log password
+    console.log('Testing Email Connection (Resend API)...');
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // STARTTLS
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-        tls: {
-            rejectUnauthorized: false
-        },
-        family: 4,
-        connectionTimeout: 10000,
-    } as any);
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        console.error('❌ Missing RESEND_API_KEY in .env file');
+        return;
+    }
+    console.log('API Key found:', apiKey.substring(0, 5) + '...');
+
+    const resend = new Resend(apiKey);
 
     try {
-        await transporter.verify();
-        console.log('✅ Connection verification successful (SMTP handshake)');
+        const { data, error } = await resend.emails.send({
+            from: 'onboarding@resend.dev', // Default testing domain
+            to: process.env.EMAIL_USER || 'delivered@resend.dev', // Use the email from env or Resend sink
+            subject: 'Render Email Test (Resend API)',
+            html: '<p>If you see this, the <strong>Resend API</strong> is working!</p>'
+        });
 
-        if (process.env.EMAIL_USER) {
-            const info = await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: process.env.EMAIL_USER,
-                subject: 'Render Email Test (Port 587)',
-                text: 'If you see this, the email service is working via STARTTLS!',
-            });
-            console.log('✅ Test email sent:', info.response);
+        if (error) {
+            console.error('❌ Resend Error:', error);
+        } else {
+            console.log('✅ Email sent successfully:', data);
         }
     } catch (error) {
         console.error('❌ Connection failed:', error);

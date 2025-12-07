@@ -1,28 +1,12 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // use STARTTLS
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        // do not fail on invalid certs
-        rejectUnauthorized: false
-    },
-    // Force IPv4 to avoid IPv6 routing issues on Render
-    family: 4,
-    // Increase connection timeout to 10 seconds
-    connectionTimeout: 10000,
-} as any);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendInvitationEmail = async (to: string, workspaceName: string, inviteLink: string) => {
     try {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to,
+        const { data, error } = await resend.emails.send({
+            from: 'CollabCode <onboarding@resend.dev>', // Default testing domain for Resend
+            to: [to],
             subject: `Invitation to join ${workspaceName} on CollabCode`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
@@ -41,10 +25,14 @@ export const sendInvitationEmail = async (to: string, workspaceName: string, inv
                     </p>
                 </div>
             `,
-        };
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
+        if (error) {
+            console.error('Error sending email:', error);
+            return false;
+        }
+
+        console.log('Email sent:', data);
         return true;
     } catch (error) {
         console.error('Error sending email:', error);
